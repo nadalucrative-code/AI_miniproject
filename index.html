@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎀 AI Medical Assistant - Sweet Care</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* --- CSS ส่วนจัดรูปแบบหน้าจอ (ธีม Sanrio: ชมพู/ม่วง น่ารัก) --- */
+        :root {
+            --primary-color: #ff69b4; /* สีชมพู (Hot Pink) */
+            --secondary-color: #8a2be2; /* สีม่วง (Blue Violet) */
+            --light-pink: #ffe4e1; /* Misty Rose */
+            --light-purple: #e6e6fa; /* Lavender */
+            --bg-color: #fcf4f7; /* Background อ่อนๆ */
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #ffc0cb; /* Light Pink Border */
+            --success-color: #00bfff; /* Deep Sky Blue for success action */
+        }
+
+        body {
+            font-family: 'Arial', 'Sans-serif';
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(255, 105, 180, 0.2);
+            overflow: hidden;
+            display: flex;
+            min-height: 80vh;
+        }
+        
+        /* --- Sidebar (Navigation) --- */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color);
+            padding: 20px 0;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sidebar h2 {
+            color: white;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            text-shadow: 1px 1px 2px var(--secondary-color);
+        }
+
+        .nav-button {
+            width: 90%;
+            padding: 15px 10px;
+            margin: 5px 0;
+            border: none;
+            background: none;
+            color: white;
+            text-align: left;
+            font-size: 1.1em;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .nav-button i {
+            margin-right: 10px;
+        }
+
+        .nav-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-button.active {
+            background-color: var(--card-bg);
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* --- Main Content --- */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        /* --- Dashboard Styles --- */
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background-color: var(--light-pink);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.2s;
+            border: 3px solid var(--primary-color);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .icon {
+            font-size: 2.5em;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-card .label {
+            font-size: 1em;
+            color: var(--text-color);
+            margin-top: 5px;
+        }
+
+        /* --- Image Analysis Styles --- */
+        #image-preview {
+            max-width: 100%;
+            max-height: 400px; /* เพิ่มความสูงให้เห็นชัด */
+            margin: 15px auto;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            display: none; /* ซ่อนไว้ก่อน */
+            object-fit: contain;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        input[type="text"], input[type="file"], select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            box-sizing: border-box;
+            background-color: var(--light-purple);
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: var(--light-purple);
+            border-radius: 10px;
+            border: 2px solid var(--secondary-color);
+            display: none; /* ซ่อนไว้ก่อน */
+        }
+
+        /* --- Chatbot Styles --- */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            overflow: hidden;
+            background-color: var(--light-pink);
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--secondary-color);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--light-purple);
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+        }
+
+        .chat-input input[type="text"] {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            margin-right: 10px;
+            outline: none;
+            background-color: white;
+        }
+
+        .chat-input button, button[type="submit"] {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s, opacity 0.3s;
+            font-weight: bold;
+        }
+        
+        .chat-input button:hover, button[type="submit"]:hover {
+            background-color: #ff3399;
+        }
+
+        .chat-input button:disabled, button[type="submit"]:disabled {
+            background-color: #cccccc;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* --- Patient Search Styles --- */
+        .search-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-controls input, .search-controls select {
+            flex-grow: 1;
+        }
+
+        .patient-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .patient-table th, .patient-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+
+        .patient-table th {
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .patient-table tr:nth-child(even) {
+            background-color: var(--light-pink);
+        }
+
+        .patient-table tr:hover {
+            background-color: #f7e0e5;
+        }
+        
+        .loading-text {
+            text-align: center;
+            font-style: italic;
+            color: var(--secondary-color);
+            padding: 10px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                margin: 0;
+                border-radius: 0;
+            }
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-around;
+                padding: 10px 0;
+            }
+            .sidebar h2 { display: none; }
+            .nav-button { width: 45%; text-align: center; margin: 5px; }
+            .chat-container { height: 400px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>🎀 Sweet Care</h2>
+            <button class="nav-button active" data-page="dashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
+            <button class="nav-button" data-page="image-analysis"><i class="fas fa-camera"></i> วิเคราะห์ภาพ</button>
+            <button class="nav-button" data-page="chatbot"><i class="fas fa-comments"></i> แชทบอท</button>
+            <button class="nav-button" data-page="patient-search"><i class="fas fa-users"></i> ค้นหาผู้ป่วย</button>
+        </div>
+
+        <div class="main-content">
+
+            <div id="dashboard" class="page active">
+                <h3>📊 Dashboard Overview</h3>
+                <div class="card-container" id="dashboard-cards">
+                    <div class="loading-text">กำลังดึงข้อมูลสถิติผู้ป่วย...</div>
+                </div>
+                <div class="result-box" id="dashboard-details" style="display: block; margin-top: 30px;">
+                    <h4>ข้อมูลการวินิจฉัย (Condition Counts)</h4>
+                    <p id="condition-list">... กำลังโหลด ...</p>
+                </div>
+            </div>
+
+            <div id="image-analysis" class="page">
+                <h3>📸 Image Analysis</h3>
+                <form id="image-analysis-form">
+                    <div class="form-group">
+                        <label for="image-type">ประเภทภาพวิเคราะห์:</label>
+                        <select id="image-type" name="image_type" required>
+                            <option value="xray">X-ray (เช่น ปอด)</option>
+                            <option value="blood">Blood Smear (การนับเซลล์)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="image-file">อัปโหลดไฟล์ภาพ:</label>
+                        <input type="file" id="image-file" name="file" accept="image/*" required>
+                    </div>
+                    <button type="submit"><i class="fas fa-brain"></i> วิเคราะห์ภาพ</button>
+                </form>
+
+                <div class="result-box" id="analysis-result">
+                    <div style="text-align: center;">
+                        <p><strong>ภาพที่วิเคราะห์:</strong></p>
+                        <img id="image-preview" src="" alt="Image Preview">
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--secondary-color);">
+                        <h4>✅ ผลการวิเคราะห์</h4>
+                        <div id="result-content">
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chatbot" class="page">
+                <h3>💬 Sweetie AI Doctor Chatbot</h3>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="message ai-message">
+                            สวัสดีค่ะ! หนูชื่อ Sweetie AI เป็นผู้ช่วยแพทย์ค่ะ มีคำถามอะไรเกี่ยวกับสุขภาพให้หนูช่วยไหมคะ?
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="chat-input-text" placeholder="พิมพ์อาการหรือคำถามที่นี่...">
+                        <button id="chat-send-btn"><i class="fas fa-paper-plane"></i> ส่ง</button>
+                    </div>
+                </div>
+                <div style="text-align: right; margin-top: 10px;">
+                    <small>Session ID: <span id="session-id-display">...</span></small>
+                    <button id="clear-chat-btn" style="background-color: var(--secondary-color); padding: 5px 10px; border-radius: 10px; color:white; border:none; cursor:pointer;"><i class="fas fa-eraser"></i> ล้างแชท</button>
+                </div>
+            </div>
+
+            <div id="patient-search" class="page">
+                <h3>🔍 Patient Search</h3>
+                <form id="patient-search-form">
+                    <div class="search-controls">
+                        <input type="text" id="search-query" name="search_query" placeholder="ชื่อผู้ป่วย / อาการ / กรุ๊ปเลือด...">
+                        <select id="search-type" name="search_type">
+                            <option value="name">ค้นหาจากชื่อ</option>
+                            <option value="condition">ค้นหาจากอาการ</option>
+                            <option value="blood_type">ค้นหาจากกรุ๊ปเลือด</option>
+                        </select>
+                        <button type="submit" style="width: 150px;"><i class="fas fa-search"></i> ค้นหา</button>
+                    </div>
+                </form>
+                
+                <table class="patient-table">
+                    <thead>
+                        <tr>
+                            <th>ชื่อ</th>
+                            <th>เพศ</th>
+                            <th>อายุ</th>
+                            <th>อาการหลัก</th>
+                            <th>กรุ๊ปเลือด</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patient-table-body">
+                        <tr><td colspan="5" class="loading-text">กรุณาป้อนคำค้นหาเพื่อเริ่ม...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Configuration ---
+            const BASE_URL = 'http://localhost:8000';
+            let SESSION_ID = localStorage.getItem('chat_session_id') || 'session_' + Math.random().toString(36).substring(2, 9);
+            localStorage.setItem('chat_session_id', SESSION_ID);
+
+            // --- Elements ---
+            const navButtons = document.querySelectorAll('.nav-button');
+            const pages = document.querySelectorAll('.page');
+            
+            // Image Analysis Elements
+            const imageAnalysisForm = document.getElementById('image-analysis-form');
+            const imageFile = document.getElementById('image-file');
+            const imageType = document.getElementById('image-type');
+            const analysisResult = document.getElementById('analysis-result');
+            const resultContent = document.getElementById('result-content');
+            const imagePreview = document.getElementById('image-preview');
+
+            // Chatbot & Search Elements
+            const chatMessages = document.getElementById('chat-messages');
+            const chatInputText = document.getElementById('chat-input-text');
+            const chatSendBtn = document.getElementById('chat-send-btn');
+            const sessionIdDisplay = document.getElementById('session-id-display');
+            const clearChatBtn = document.getElementById('clear-chat-btn');
+            const patientSearchForm = document.getElementById('patient-search-form');
+            const patientTableBody = document.getElementById('patient-table-body');
+            
+            sessionIdDisplay.textContent = SESSION_ID;
+
+            // --- Helper Functions ---
+            const showPage = (pageId) => {
+                pages.forEach(p => p.classList.remove('active'));
+                navButtons.forEach(b => b.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+                document.querySelector(`.nav-button[data-page="${pageId}"]`).classList.add('active');
+                
+                if (pageId === 'dashboard') fetchDashboardStats();
+            };
+
+            const setLoading = (elementId, message) => {
+                const element = document.getElementById(elementId);
+                if(element) element.innerHTML = `<div class="loading-text"><i class="fas fa-spinner fa-spin"></i> ${message}</div>`;
+            };
+
+            // --- 2. Image Analysis Functions (FIXED) ---
+            imageAnalysisForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const submitBtn = imageAnalysisForm.querySelector('button[type="submit"]');
+                const file = imageFile.files[0];
+                const type = imageType.value;
+                if (!file) return alert('กรุณาเลือกไฟล์ภาพ');
+
+                // 1. แสดงกล่องผลลัพธ์
+                analysisResult.style.display = 'block';
+                
+                // 2. แสดงรูปภาพทันที (Preview Local File)
+                imagePreview.style.display = 'block';
+                imagePreview.src = URL.createObjectURL(file);
+
+                // 3. แสดง Loading ที่ส่วน Text (ไม่ลบรูปทิ้ง)
+                setLoading('result-content', 'กำลังส่งรูปไปวิเคราะห์กับ AI...');
+                submitBtn.disabled = true;
+
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('image_type', type);
+                    
+                    const response = await fetch(`${BASE_URL}/analyze`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        resultContent.innerHTML = `<p style="color:red;">❌ <strong>เกิดข้อผิดพลาด:</strong> ${result.error || 'Server Error'}</p>`;
+                        return;
+                    }
+
+                    // แสดงผลลัพธ์
+                    if (type === 'xray') {
+                        resultContent.innerHTML = `
+                            <p><strong>ผลการวินิจฉัย:</strong> <span style="font-size: 1.4em; color: var(--primary-color);">${result.result}</span></p>
+                            <p><strong>ความมั่นใจ (Confidence):</strong> ${result.confidence}</p>
+                            <div style="background: #fff; padding: 10px; border-radius: 8px; margin-top:10px;">
+                                <small>รายละเอียดอื่นๆ:</small><br>
+                                ${Object.entries(result.all_predictions || {}).map(([k, v]) => `${k}: ${v}`).join(', ')}
+                            </div>
+                        `;
+                    } else if (type === 'blood') {
+                        let cellHtml = '';
+                        if (result.cell_counts && Object.keys(result.cell_counts).length > 0) {
+                             cellHtml = `<ul style="padding-left: 20px;">${Object.entries(result.cell_counts).map(([cell, count]) => `<li>${cell}: <strong>${count}</strong></li>`).join('')}</ul>`;
+                        } else {
+                            cellHtml = `<p>ไม่พบเซลล์ที่รู้จัก</p>`;
+                        }
+                        resultContent.innerHTML = `
+                            <p><strong>จำนวนเซลล์ทั้งหมด:</strong> <span style="font-size: 1.4em; color: var(--primary-color);">${result.total_cells}</span> เซลล์</p>
+                            ${cellHtml}
+                        `;
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                    resultContent.innerHTML = `<p style="color:red;">❌ เชื่อมต่อ Server ไม่ได้: ${error.message}</p>`;
+                } finally {
+                    submitBtn.disabled = false;
+                }
+            });
+
+            // --- 1. Dashboard Functions ---
+            const fetchDashboardStats = async () => {
+                const cardsContainer = document.getElementById('dashboard-cards');
+                const conditionList = document.getElementById('condition-list');
+                
+                try {
+                    const response = await fetch(`${BASE_URL}/patient/stats`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        const stats = data.stats;
+                        cardsContainer.innerHTML = '';
+                        
+                        const items = [
+                            { icon: 'fa-hospital-user', label: 'ผู้ป่วยทั้งหมด', val: stats.total_patients },
+                            { icon: 'fa-procedures', label: 'อายุเฉลี่ย', val: stats.avg_age.toFixed(1) },
+                            { icon: 'fa-tint', label: 'กรุ๊ปเลือด Top', val: Object.keys(stats.blood_types)[0] },
+                            { icon: 'fa-heartbeat', label: 'โรคที่พบบ่อย', val: Object.keys(stats.conditions)[0] }
+                        ];
+
+                        items.forEach(item => {
+                            cardsContainer.innerHTML += `
+                                <div class="stat-card">
+                                    <div class="icon"><i class="fas ${item.icon}"></i></div>
+                                    <div class="value">${item.val}</div>
+                                    <div class="label">${item.label}</div>
+                                </div>
+                            `;
+                        });
+
+                        // Condition List
+                        let html = '<ul style="columns: 2;">';
+                        for (const [k, v] of Object.entries(stats.conditions)) {
+                            html += `<li>${k}: ${v}</li>`;
+                        }
+                        html += '</ul>';
+                        conditionList.innerHTML = html;
+                    }
+                } catch (e) {
+                    cardsContainer.innerHTML = `<div class="loading-text" style="color:red;">โหลดข้อมูลไม่สำเร็จ (ตรวจสอบ Backend)</div>`;
+                }
+            };
+
+            // --- 3. Chatbot Functions ---
+            const addMsg = (txt, sender) => {
+                const d = document.createElement('div');
+                d.className = `message ${sender === 'user' ? 'user-message' : 'ai-message'}`;
+                d.textContent = txt;
+                chatMessages.appendChild(d);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+
+            chatSendBtn.addEventListener('click', async () => {
+                const txt = chatInputText.value.trim();
+                if(!txt) return;
+                
+                addMsg(txt, 'user');
+                chatInputText.value = '';
+                chatSendBtn.disabled = true;
+                
+                // Show typing
+                const loadDiv = document.createElement('div');
+                loadDiv.className = 'loading-text';
+                loadDiv.innerHTML = '<i class="fas fa-ellipsis-h"></i> Sweetie AI กำลังพิมพ์...';
+                chatMessages.appendChild(loadDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                try {
+                    const fd = new FormData();
+                    fd.append('message', txt);
+                    fd.append('session_id', SESSION_ID);
+                    const res = await fetch(`${BASE_URL}/chat`, { method:'POST', body:fd });
+                    const data = await res.json();
+                    loadDiv.remove();
+                    if(data.success) addMsg(data.response, 'ai');
+                    else addMsg('ขออภัย ระบบขัดข้อง', 'ai');
+                } catch(e) {
+                    loadDiv.remove();
+                    addMsg('Error: ' + e.message, 'ai');
+                } finally {
+                    chatSendBtn.disabled = false;
+                }
+            });
+            
+            chatInputText.addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') chatSendBtn.click();
+            });
+
+            clearChatBtn.addEventListener('click', async () => {
+                if(confirm('ล้างแชทหรือไม่?')) {
+                    await fetch(`${BASE_URL}/chat/clear/${SESSION_ID}`);
+                    chatMessages.innerHTML = '';
+                    addMsg('ล้างประวัติแล้วค่ะ เริ่มใหม่ได้เลย!', 'ai');
+                }
+            });
+
+            // --- 4. Search Functions ---
+            patientSearchForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const q = document.getElementById('search-query').value;
+                const t = document.getElementById('search-type').value;
+                const btn = patientSearchForm.querySelector('button');
+                
+                setLoading('patient-table-body', 'กำลังค้นหา...');
+                btn.disabled = true;
+                
+                try {
+                    const fd = new FormData();
+                    fd.append('search_query', q);
+                    fd.append('search_type', t);
+                    const res = await fetch(`${BASE_URL}/patient/search`, { method:'POST', body:fd });
+                    const data = await res.json();
+                    
+                    const tbody = document.getElementById('patient-table-body');
+                    tbody.innerHTML = '';
+                    
+                    if(data.results && data.results.length > 0) {
+                        data.results.forEach(p => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${p.Name}</td>
+                                    <td>${p.Gender}</td>
+                                    <td>${p.Age}</td>
+                                    <td>${p['Medical Condition']}</td>
+                                    <td>${p['Blood Type']}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">ไม่พบข้อมูล</td></tr>`;
+                    }
+                } catch(err) {
+                    console.error(err);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+
+            // Init
+            showPage('dashboard');
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', () => showPage(btn.dataset.page));
+            });
+        });
+    </script>
+</body>
+</html>
